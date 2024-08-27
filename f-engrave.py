@@ -2549,6 +2549,8 @@ class Application(Frame):
         top_File.add_separator()
         top_File.add("command", label = "Save G-Code", \
                          command = self.menu_File_Save_G_Code_File)
+        top_File.add("command", label = "Save All G-Code", \
+                         command = self.menu_File_Save_All_G_Code_File)
         top_File.add_separator()
         top_File.add("command", label = "Export SVG",    \
                          command = self.menu_File_Save_SVG_File)
@@ -3906,7 +3908,7 @@ class Application(Frame):
             pass
         #print "time for cleanup calculations: ",time()-TSTART
 
-    def Write_Clean_Click(self):
+    def Write_Clean_Click(self, filename=''):
         win_id=self.grab_current()
         if (self.clean_P.get() + \
             self.clean_X.get() + \
@@ -3922,7 +3924,7 @@ class Application(Frame):
                 mess = mess + "(Or no Cleanup paths were found)"
                 message_box("Cleanup Info",mess)
             else:
-                self.menu_File_Save_clean_G_Code_File("straight")
+                self.menu_File_Save_clean_G_Code_File("straight", filename=filename)
         else:
             mess =        "Cleanup Operation must be set and\n"
             mess = mess + "Calculate Cleanup must be executed\n"
@@ -4866,6 +4868,9 @@ class Application(Frame):
                         self.plotbox.set(line[line.find("plotbox"):].split()[1])
 
                 # STRING
+                elif "last_dir" in input_code:
+                    self.working_dir = line[line.find("last_dir"):].split()[1]
+                    print("LAST DIR FOUND:", self.working_dir)
                 elif "fontdir"    in input_code:
                     self.fontdir.set(line[line.find("fontdir"):].split("\042")[1])
                 elif "gpre"       in input_code:
@@ -5083,6 +5088,16 @@ class Application(Frame):
             self.statusMessage.set("File Saved: %s" %(filename))
             self.statusbar.configure( bg = 'white' )
 
+    def menu_File_Save_All_G_Code_File(self):
+        print("Saving all three g-code files...")
+        self.menu_File_Save_G_Code_File()
+        full_filename = os.path.basename(self.NGC_FILE)
+        filename = os.path.splitext(full_filename)[0]
+
+        print("Saving file:",self.NGC_FILE)
+
+        self.Write_Clean_Click(filename = filename + '_sq_clean.ngc')
+        self.Write_V_Clean_Click(filename = filename + '_v_clean.ngc')
 
     def menu_File_Save_G_Code_File(self):
         if (self.Check_All_Variables() > 0):
@@ -5133,7 +5148,8 @@ class Application(Frame):
             self.statusbar.configure( bg = 'white' )
 
 
-    def menu_File_Save_clean_G_Code_File(self, bit_type="straight"):
+    def menu_File_Save_clean_G_Code_File(self, bit_type="straight", filename=""):
+        print("file save clean gcode file:", filename)
         if (self.Check_All_Variables() > 0):
             return
 
@@ -5160,7 +5176,8 @@ class Application(Frame):
             init_file = init_file +        self.clean_name.get()
 
 
-        filename = asksaveasfilename(defaultextension='.ngc', \
+        if filename == '':
+            filename = asksaveasfilename(defaultextension='.ngc', \
                                      filetypes=[("G-Code File","*.ngc"),("TAP File","*.tap"),("All Files","*")],\
                                      initialdir=init_dir,\
                                      initialfile= init_file )
