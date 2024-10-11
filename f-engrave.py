@@ -1981,6 +1981,7 @@ class Application(Frame):
         self.clean_v    = StringVar()
         self.clean_name = StringVar()
 
+        self.gext        = StringVar()
         self.gpre        = StringVar()
         self.gpost       = StringVar()
 
@@ -2078,6 +2079,7 @@ class Application(Frame):
         self.yorigin.set("0.0")
         self.segarc.set("5.0")
         self.accuracy.set("0.001")
+        self.gext.set(".ngc")
 
         self.segID   = []
         self.gcode   = []
@@ -2148,16 +2150,16 @@ class Application(Frame):
         ##########################################################################
         ###                     END INITILIZING VARIABLES                      ###
         ##########################################################################
-        config_file = "config.ngc"
+        config_file = "config.txt"
         home_config1 = self.HOME_DIR + "/.config/f-engrave/" + config_file
         config_file2 = ".fengraverc"
         home_config2 = self.HOME_DIR + "/.config/f-engrave/" + config_file2
         if ( os.path.isfile(config_file) ):
-            self.Open_G_Code_File(config_file)
+            self.Open_Settings_File(config_file)
         elif ( os.path.isfile(home_config1) ):
-            self.Open_G_Code_File(home_config1)
+            self.Open_Settings_File(home_config1)
         elif ( os.path.isfile(home_config2) ):
-            self.Open_G_Code_File(home_config2)
+            self.Open_Settings_File(home_config2)
 
         opts, args = None, None
         try:
@@ -2177,7 +2179,7 @@ class Application(Frame):
                 fmessage('-h    : print this help (also --help)\n')
                 sys.exit()
             if option in ('-g','--gcode_file'):
-                self.Open_G_Code_File(value)
+                self.Open_Settings_File(value)
                 self.NGC_FILE = value
             if option in ('-f','--fontdir'):
                 if os.path.isdir(value):
@@ -2538,7 +2540,7 @@ class Application(Frame):
         top_File.add("command", label = "Save Settings to File", \
                          command = self.menu_File_Save_Settings_File)
         top_File.add("command", label = "Read Settings from File", \
-                         command = self.menu_File_Open_G_Code_File)
+                         command = self.menu_File_Open_Settings_File)
         top_File.add_separator()
         if self.POTRACE_AVAIL == TRUE:
             top_File.add("command", label = "Open DXF/Image", \
@@ -4760,16 +4762,16 @@ class Application(Frame):
         self.Recalc_RQD()
     # End General Settings Callbacks
 
-    def menu_File_Open_G_Code_File(self):
+    def menu_File_Open_Settings_File(self):
         init_dir = os.path.dirname(self.NGC_FILE)
         if ( not os.path.isdir(init_dir) ):
             init_dir = self.HOME_DIR
-        fileselect = askopenfilename(filetypes=[("F-Engrave G-code Files","*.ngc"),\
+        fileselect = askopenfilename(filetypes=[("F-Engrave Settings Files","*.txt"),\
                                                 ("All Files","*")],\
                                                  initialdir=init_dir)
 
         if fileselect != '' and fileselect != ():
-            self.Open_G_Code_File(fileselect)
+            self.Open_Settings_File(fileselect)
 
     def menu_File_Open_DXF_File(self):
         init_dir = os.path.dirname(self.IMAGE_FILE)
@@ -4802,7 +4804,7 @@ class Application(Frame):
             self.Read_image_file()
             self.DoIt()
 
-    def Open_G_Code_File(self,filename):
+    def Open_Settings_File(self,filename):
         self.delay_calc = 1
         boxsize = "0"
         try:
@@ -4814,8 +4816,12 @@ class Application(Frame):
         ident = "fengrave_set"
         for line in fin:
             if ident in line:
+                print (line.split())
 
-                input_code =  line.split(ident)[1].split()[0]
+                input_code =  line.split()[1]
+                print(input_code)
+                value = line.split()[2]
+                print(value)
 
                 if "TCODE" in input_code:
                     code_list = line[line.find("TCODE"):].split()
@@ -8415,6 +8421,13 @@ class Application(Frame):
         self.Checkbutton_no_com.place(x=xd_entry_L, y=D_Yloc, width=75, height=23)
         self.Checkbutton_no_com.configure(variable=self.no_comments)
 
+        D_Yloc=D_Yloc+D_dY
+        self.Label_G_ext = Label(gen_settings,text="G Code File Extension")
+        self.Label_G_ext.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        self.Entry_G_ext = Entry(gen_settings,width="15")
+        self.Entry_G_ext.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        self.Entry_G_ext.configure(textvariable=self.gext)
+        
         D_Yloc=D_Yloc+D_dY
         self.Label_Gpre = Label(gen_settings,text="G Code Header")
         self.Label_Gpre.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
