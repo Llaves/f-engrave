@@ -2885,6 +2885,8 @@ class Application(Frame):
             self.gcode.append('(fengrave_set fontdir    \042%s\042 )' %( self.fontdir.get()  ))
             self.gcode.append('(fengrave_set gpre        %s )' %( self.gpre.get()         ))
             self.gcode.append('(fengrave_set gpost       %s )' %( self.gpost.get()        ))
+            self.gcode.append('(fengrave_set gext       %s )' %( self.gext.get()        ))
+            
 
             self.gcode.append('(fengrave_set imagefile   \042%s\042 )' %( self.IMAGE_FILE ))
             self.gcode.append('(fengrave_set input_type  %s )' %( self.input_type.get() ))
@@ -4818,11 +4820,11 @@ class Application(Frame):
             if ident in line:
                 input_code =  line.split()[1]
                 value = line.split()[2]
+                value_list = line.split()[2:]
                 
                 match input_code:
                     case "TCODE":
-                        code_list = line[line.find("TCODE"):].split()
-                        for char in code_list:
+                        for char in value_list:
                             try:
                                 text_codes.append(int(char))
                             except:
@@ -4875,7 +4877,7 @@ class Application(Frame):
                         self.working_dir = value
                         print("LAST DIR FOUND:", self.working_dir)
                     case "fontdir":
-                        self.fontdir.set(line[line.find("fontdir"):].split("\042")[1])
+                        self.fontdir.set(value.split("\042")[1])
                     case "gpre":
                         gpre_tmp = ""
                         for word in line[line.find("gpre"):].split():
@@ -4890,6 +4892,8 @@ class Application(Frame):
                         self.gpost.set(gpost_tmp)
 
                     # STRING.set()
+                    case "gext":
+                        self.gext.set(value)
                     case "arc_fit":
                        self.arc_fit.set(value)
                     case "YSCALE":
@@ -5129,7 +5133,7 @@ class Application(Frame):
             init_file="text"
 
         filename = asksaveasfilename(defaultextension='.ngc', \
-                                     filetypes=[("G-Code File","*.ngc"),("TAP File","*.tap"),("All Files","*")],\
+                                     filetypes=[("G-Code File","*"+self.gext.get()),("TAP File","*.tap"),("All Files","*")],\
                                      initialdir=init_dir,\
                                      initialfile= init_file )
 
